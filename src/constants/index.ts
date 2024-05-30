@@ -1,3 +1,4 @@
 import { schema } from "./formValidation";
+import { validatePhoneNumber } from "./validatePhoneNumber";
 
-export { schema };
+export { schema, validatePhoneNumber };
