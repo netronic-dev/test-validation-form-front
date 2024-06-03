@@ -108,7 +108,7 @@ const Form = () => {
         const ipData = await ipResponse.json();
         setIpAddress(ipData.ip);
 
-        const geoResponse = await fetch(`https://ip-api.com/json/${ipData.ip}`);
+        const geoResponse = await fetch(`http://ip-api.com/json/${ipData.ip}`);
         const geoData = await geoResponse.json();
         setGeoInfo(geoData);
       } catch (error) {
