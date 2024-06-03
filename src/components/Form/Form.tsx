@@ -27,6 +27,7 @@ const Form = () => {
   const [ipAddress, setIpAddress] = useState<string>("");
   const [geoInfo, setGeoInfo] = useState<null | object>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isSubmitSuccessful, setIsSubmitSuccessful] = useState<boolean>(false);
 
   const getUTMParams = () => {
     const urlParams = new URLSearchParams();
@@ -62,7 +63,7 @@ const Form = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isValid, isSubmitting },
     control,
     reset,
   } = useForm<IFormInputs>({
@@ -90,10 +91,12 @@ const Form = () => {
     };
 
     try {
+      setIsSubmitSuccessful(true);
       setIsModalOpen(true);
       await addLead(formData);
       reset();
     } catch (error) {
+      setIsSubmitSuccessful(false);
       console.error("Error adding participant:", error);
     }
   };
