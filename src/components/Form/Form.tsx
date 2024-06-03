@@ -3,7 +3,7 @@ import { Checkbox, FormControlLabel, Radio, RadioGroup } from "@mui/material";
 import { yupResolver } from "@hookform/resolvers/yup";
 import "react-phone-number-input/style.css";
 import { ESelectedRadio, IFormInputs } from "../../models";
-import { schema, validatePhoneNumber } from "../../constants";
+import { radioOptions, schema } from "../../constants";
 import {
   FormBtn,
   FormContainer,
@@ -20,14 +20,13 @@ import {
 import { useEffect, useState } from "react";
 import { getCountryCode } from "../../utils";
 import { ModalResult } from "../ModalResult";
+import { isValidPhoneNumber } from "react-phone-number-input";
+import { addLead } from "../../services";
 
 const Form = () => {
   const [ipAddress, setIpAddress] = useState<string>("");
   const [geoInfo, setGeoInfo] = useState<null | object>(null);
-  const [wasFormSent, setWasFormSent] = useState<boolean>(false);
-  const [wasSentSuccessfully, setWasSentSuccessfully] =
-    useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const getUTMParams = () => {
     const urlParams = new URLSearchParams();
@@ -41,32 +40,33 @@ const Form = () => {
     };
   };
 
-    const [query, setQuery] = useState(() => {
-      const storedQuery = localStorage.getItem("query");
-      return storedQuery ? JSON.parse(storedQuery) : getUTMParams();
-    });
+  const [query, setQuery] = useState(() => {
+    const storedQuery = localStorage.getItem("query");
+    return storedQuery ? JSON.parse(storedQuery) : getUTMParams();
+  });
 
-    useEffect(() => {
-      const handleHashChange = () => {
-        const params = getUTMParams();
-        setQuery(params);
-        localStorage.setItem("query", JSON.stringify(params));
-      };
+  useEffect(() => {
+    const handleHashChange = () => {
+      const params = getUTMParams();
+      setQuery(params);
+      localStorage.setItem("query", JSON.stringify(params));
+    };
 
-      window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener("hashchange", handleHashChange);
 
-      return () => {
-        window.removeEventListener("hashchange", handleHashChange);
-      };
-    }, []);
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isSubmitting, isSubmitSuccessful },
     control,
     reset,
   } = useForm<IFormInputs>({
+    mode: "onChange",
     resolver: yupResolver(schema),
     defaultValues: {
       privacyPolicy: true,
@@ -74,10 +74,12 @@ const Form = () => {
     },
   });
 
-  console.log(query, "query");
-
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
     const countryCode = getCountryCode(data.phoneNumber);
+
+    if (!countryCode) {
+      return;
+    }
 
     const formData = {
       ...data,
@@ -88,18 +90,11 @@ const Form = () => {
     };
 
     try {
-      console.log(formData, "formData");
-      setWasFormSent(true);
-      setWasSentSuccessfully(true);
-      setSubmitting(true);
+      setIsModalOpen(true);
+      await addLead(formData);
       reset();
-      //   await addClient(formData);
     } catch (error) {
-      setWasFormSent(false);
-      setWasSentSuccessfully(false);
       console.error("Error adding participant:", error);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -142,108 +137,23 @@ const Form = () => {
                   gap: 2,
                 }}
               >
-                <FormControlLabel
-                  sx={{
-                    color: "#ffffff",
-                    "&.Mui-checked": {
-                      color: "#64ffda",
-                    },
-                  }}
-                  value={ESelectedRadio.GET_CATALOG}
-                  control={
-                    <Radio
-                      sx={{
+                {radioOptions.map((option) => (
+                  <FormControlLabel
+                    key={option.value}
+                    sx={{
+                      color: "#ffffff",
+                      "& .MuiRadio-root": {
                         color: "#ffffff",
                         "&.Mui-checked": {
                           color: "#64ffda",
                         },
-                      }}
-                    />
-                  }
-                  label={
-                    <span className="font-konnect">
-                      {ESelectedRadio.GET_CATALOG.charAt(0).toUpperCase() +
-                        ESelectedRadio.GET_CATALOG.slice(1)}
-                    </span>
-                  }
-                />
-                <FormControlLabel
-                  sx={{
-                    color: "#ffffff",
-                    "&.Mui-checked": {
-                      color: "#64ffda",
-                    },
-                  }}
-                  value={ESelectedRadio.GET_PRICE}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#ffffff",
-                        "&.Mui-checked": {
-                          color: "#64ffda",
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <span className="font-konnect">
-                      {ESelectedRadio.GET_PRICE.charAt(0).toUpperCase() +
-                        ESelectedRadio.GET_PRICE.slice(1)}
-                    </span>
-                  }
-                />
-                <FormControlLabel
-                  sx={{
-                    color: "#ffffff",
-                    "&.Mui-checked": {
-                      color: "#64ffda",
-                    },
-                  }}
-                  value={ESelectedRadio.ORDER_DEMO}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#ffffff",
-                        "&.Mui-checked": {
-                          color: "#64ffda",
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <span className="font-konnect">
-                      {ESelectedRadio.ORDER_DEMO.charAt(0).toUpperCase() +
-                        ESelectedRadio.ORDER_DEMO.slice(1)}
-                    </span>
-                  }
-                />
-                <FormControlLabel
-                  sx={{
-                    color: "#ffffff",
-                    "&.Mui-checked": {
-                      color: "#64ffda",
-                    },
-                  }}
-                  value={ESelectedRadio.RECEIVE_CONSULTATION}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#ffffff",
-                        "&.Mui-checked": {
-                          color: "#64ffda",
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <span className="font-konnect">
-                      {ESelectedRadio.RECEIVE_CONSULTATION.charAt(
-                        0
-                      ).toUpperCase() +
-                        ESelectedRadio.RECEIVE_CONSULTATION.slice(1)}
-                    </span>
-                  }
-                />
+                      },
+                    }}
+                    value={option.value}
+                    control={<Radio />}
+                    label={<span className="font-konnect">{option.label}</span>}
+                  />
+                ))}
               </RadioGroup>
             );
           }}
@@ -253,7 +163,9 @@ const Form = () => {
           <FormInput
             $error={errors.name ? "true" : "false"}
             className="transition-all font-gravity"
-            {...register("name", { maxLength: 20 })}
+            {...register("name", {
+              required: "Name is required",
+            })}
           />
           <InputErrorMessage className="font-konnect">
             {errors.name?.message}
@@ -275,15 +187,19 @@ const Form = () => {
           <Controller
             name="phoneNumber"
             control={control}
-            rules={{
-              validate: validatePhoneNumber,
-            }}
             render={({ field: { onChange, value } }) => (
               <FormPhoneInput
                 international
                 defaultCountry="US"
                 value={value}
                 onChange={onChange}
+                error={
+                  value
+                    ? isValidPhoneNumber(value)
+                      ? undefined
+                      : "Invalid phone number"
+                    : "Phone number is required"
+                }
               />
             )}
           />
@@ -319,15 +235,15 @@ const Form = () => {
         <FormBtn
           className="font-gravity transition-all"
           type="submit"
-          value={submitting ? "Submitting..." : "Submit"}
-          disabled={!isValid || submitting}
+          value={isSubmitting ? "Submitting..." : "Submit"}
+          disabled={!isValid || isSubmitting}
         />
       </FormStyled>
-      {wasFormSent && (
+      {isModalOpen && (
         <ModalResult
-          isOpen={wasFormSent}
-          setIsOpen={setWasFormSent}
-          wasSentSuccessfully={wasSentSuccessfully}
+          isOpen={isModalOpen}
+          setIsOpen={setIsModalOpen}
+          isSubmitSuccessful={isSubmitSuccessful}
         />
       )}
     </FormContainer>

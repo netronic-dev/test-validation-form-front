@@ -127,6 +127,7 @@ export const FormCheckboxInput = styled.input`
 `;
 
 export const InputErrorMessage = styled.p`
+  height: 20px;
   color: var(--error-color);
 `;
 

@@ -10,13 +10,13 @@ import {
 interface IModalResult {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  wasSentSuccessfully: boolean;
+  isSubmitSuccessful: boolean;
 }
 
 const ModalResult: FC<IModalResult> = ({
   isOpen,
   setIsOpen,
-  wasSentSuccessfully,
+  isSubmitSuccessful,
 }) => {
   return (
     <Modal
@@ -32,15 +32,15 @@ const ModalResult: FC<IModalResult> = ({
     >
       <ModalInfoContainer>
         <Icon
-          name={wasSentSuccessfully ? "icon-success" : "icon-error"}
+          name={isSubmitSuccessful ? "icon-success" : "icon-error"}
           width={100}
           height={100}
         />
         <ModalInfoTitle
-          wasSentSuccessfully={wasSentSuccessfully}
+          wasSentSuccessfully={isSubmitSuccessful}
           className="text-[30px]"
         >
-          {wasSentSuccessfully ? "Success" : "Error"}
+          {isSubmitSuccessful ? "Success" : "Error"}
         </ModalInfoTitle>
         <IconCross
           onClick={() => setIsOpen(false)}

@@ -1,4 +1,4 @@
 import { schema } from "./formValidation";
-import { validatePhoneNumber } from "./validatePhoneNumber";
+import { radioOptions } from "./globalConstants";
 
-export { schema, validatePhoneNumber };
+export { schema, radioOptions };
