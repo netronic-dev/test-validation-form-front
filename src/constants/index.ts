@@ -1,3 +1,4 @@
 import { schema } from "./formValidation";
+import { radioOptions } from "./globalConstants";
 
-export { schema };
+export { schema, radioOptions };

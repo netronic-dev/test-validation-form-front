@@ -1,11 +1,24 @@
+import { lazy } from "react";
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
-import { Form } from "./components/Form";
+import { Icons } from "./components/Icons";
+
+const FormPage = lazy(() => import("./pages/FormPage/FormPage"));
+const TestPage = lazy(() => import("./pages/TestPage/TestPage"));
 
 function App() {
   return (
-    <div className="main-container">
-      <Form />
-    </div>
+<>
+ <Icons />
+      <div className="main-container">
+        <Routes>
+          {/* <Route path="/" element={<SharedLayout />}> */}
+          <Route index element={<FormPage />} />
+          <Route path="test" element={<TestPage />} />
+          {/* </Route> */}
+        </Routes>
+      </div>
+</>
   );
 }
 
