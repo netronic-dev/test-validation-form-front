@@ -31,16 +31,12 @@ const ModalResult: FC<IModalResult> = ({
       }}
     >
       <ModalInfoContainer>
-        <Icon
-          name={isSubmitSuccessful ? "icon-success" : "icon-error"}
-          width={100}
-          height={100}
-        />
+        <Icon name="icon-success" width={100} height={100} />
         <ModalInfoTitle
           wasSentSuccessfully={isSubmitSuccessful}
           className="text-[30px]"
         >
-          {isSubmitSuccessful ? "Success" : "Error"}
+          Success
         </ModalInfoTitle>
         <IconCross
           onClick={() => setIsOpen(false)}

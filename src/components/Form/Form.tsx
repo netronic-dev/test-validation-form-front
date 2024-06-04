@@ -1,6 +1,7 @@
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { Checkbox, FormControlLabel, Radio, RadioGroup } from "@mui/material";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { toast } from "react-toastify";
 import "react-phone-number-input/style.css";
 import { ESelectedRadio, IFormInputs } from "../../models";
 import { radioOptions, schema } from "../../constants";
@@ -91,24 +92,28 @@ const Form = () => {
     };
 
     try {
-      setIsSubmitSuccessful(true);
-      setIsModalOpen(true);
-      await addLead(formData);
-      reset();
+      await addLead(formData, (success: boolean) => {
+        setIsSubmitSuccessful(success);
+
+        if (success) {
+          setIsModalOpen(true);
+          reset();
+        }
+      });
     } catch (error) {
       setIsSubmitSuccessful(false);
-      console.error("Error adding participant:", error);
+      toast.error("An error occurred. Please try again later.");
     }
   };
 
   useEffect(() => {
     const fetchIpAndGeoInfo = async () => {
       try {
-        const ipResponse = await fetch("https://api.ipify.org?format=json");
+        const ipResponse = await fetch("http://api.ipify.org?format=json");
         const ipData = await ipResponse.json();
         setIpAddress(ipData.ip);
 
-        const geoResponse = await fetch(`https://ip-api.com/json/${ipData.ip}`);
+        const geoResponse = await fetch(`http://ip-api.com/json/${ipData.ip}`);
         const geoData = await geoResponse.json();
         setGeoInfo(geoData);
       } catch (error) {
@@ -242,7 +247,7 @@ const Form = () => {
           disabled={!isValid || isSubmitting}
         />
       </FormStyled>
-      {isModalOpen && (
+      {isSubmitSuccessful && isModalOpen && (
         <ModalResult
           isOpen={isModalOpen}
           setIsOpen={setIsModalOpen}

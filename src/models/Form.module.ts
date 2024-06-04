@@ -30,3 +30,7 @@ export interface IFormData {
   ipAddress: string;
   geoInfo: null | object;
 }
+
+export interface ErrorResponse {
+  name: string;
+}
