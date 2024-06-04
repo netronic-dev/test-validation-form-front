@@ -29,9 +29,12 @@ const Form = () => {
   const [geoInfo, setGeoInfo] = useState<null | object>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSubmitSuccessful, setIsSubmitSuccessful] = useState<boolean>(false);
+  const [serverNameError, setServerNameError] = useState<string>("");
+  const [serverPhoneError, setServerPhoneError] = useState<string>("");
+  const [serverEmailError, setServerEmailError] = useState<string>("");
 
   const getUTMParams = () => {
-    const urlParams = new URLSearchParams();
+    const urlParams = new URLSearchParams(window.location.search);
 
     return {
       utm_source: urlParams.get("utm_source") || "google",
@@ -42,24 +45,31 @@ const Form = () => {
     };
   };
 
-  const [query, setQuery] = useState(() => {
-    const storedQuery = localStorage.getItem("query");
-    return storedQuery ? JSON.parse(storedQuery) : getUTMParams();
-  });
+useEffect(() => {
+  const handleURLChange = () => {
+    const params = getUTMParams();
+    setQuery(params);
+    localStorage.setItem("query", JSON.stringify(params));
+  };
+  
+  handleURLChange();
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const params = getUTMParams();
-      setQuery(params);
-      localStorage.setItem("query", JSON.stringify(params));
-    };
+  window.addEventListener("load", handleURLChange);
+  window.addEventListener("hashchange", handleURLChange);
+  window.addEventListener("popstate", handleURLChange);
 
-    window.addEventListener("hashchange", handleHashChange);
+  return () => {
+    window.removeEventListener("load", handleURLChange);
+    window.removeEventListener("hashchange", handleURLChange);
+    window.removeEventListener("popstate", handleURLChange);
+  };
+}, []);
 
-    return () => {
-      window.removeEventListener("hashchange", handleHashChange);
-    };
-  }, []);
+const [query, setQuery] = useState(() => {
+  const storedQuery = localStorage.getItem("query");
+  console.log(storedQuery, "storedQuery");
+  return storedQuery ? JSON.parse(storedQuery) : getUTMParams();
+});
 
   const {
     register,
@@ -75,6 +85,37 @@ const Form = () => {
       nameOfForm: ESelectedRadio.GET_CATALOG,
     },
   });
+
+  const handleServerErrors = (errors: { [key: string]: string }) => {
+    const { name, email, phone } = errors;
+
+    if (name) {
+      setServerNameError(name);
+      toast.error(name);
+    } else {
+      setServerNameError("");
+    }
+
+    if (email) {
+      setServerEmailError(email);
+      toast.error(email);
+    } else {
+      setServerEmailError("");
+    }
+
+    if (phone) {
+      setServerPhoneError(phone);
+      toast.error(phone);
+    } else {
+      setServerPhoneError("");
+    }
+  };
+
+  const clearServerErrors = () => {
+    setServerNameError("");
+    setServerEmailError("");
+    setServerPhoneError("");
+  };
 
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
     const countryCode = getCountryCode(data.phoneNumber);
@@ -92,7 +133,7 @@ const Form = () => {
     };
 
     try {
-      await addLead(formData, (success: boolean) => {
+      const { response } = await addLead(formData, (success: boolean) => {
         setIsSubmitSuccessful(success);
 
         if (success) {
@@ -100,6 +141,12 @@ const Form = () => {
           reset();
         }
       });
+
+      if (response && response.data) {
+        handleServerErrors(response.data);
+      } else {
+        clearServerErrors();
+      }
     } catch (error) {
       setIsSubmitSuccessful(false);
       toast.error("An error occurred. Please try again later.");
@@ -176,7 +223,7 @@ const Form = () => {
             })}
           />
           <InputErrorMessage className="font-konnect">
-            {errors.name?.message}
+            {errors.name?.message || serverNameError}
           </InputErrorMessage>
         </FormLabel>
         <FormLabel className="font-konnect">
@@ -187,7 +234,7 @@ const Form = () => {
             {...register("email")}
           />
           <InputErrorMessage className="font-konnect">
-            {errors.email?.message}
+            {errors.email?.message || serverEmailError}
           </InputErrorMessage>
         </FormLabel>
         <FormLabel className="font-konnect">
@@ -213,7 +260,7 @@ const Form = () => {
           />
           {errors.phoneNumber && (
             <InputErrorMessage className="font-konnect">
-              {errors.phoneNumber.message}
+              {errors.phoneNumber.message || serverPhoneError}
             </InputErrorMessage>
           )}
         </FormLabel>

@@ -33,4 +33,6 @@ export interface IFormData {
 
 export interface ErrorResponse {
   name: string;
+  email: string;
+  phone: string;
 }
