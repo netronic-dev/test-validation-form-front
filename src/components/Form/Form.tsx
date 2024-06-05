@@ -29,47 +29,20 @@ const Form = () => {
   const [geoInfo, setGeoInfo] = useState<null | object>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSubmitSuccessful, setIsSubmitSuccessful] = useState<boolean>(false);
-  const [serverNameError, setServerNameError] = useState<string>("");
-  const [serverPhoneError, setServerPhoneError] = useState<string>("");
-  const [serverEmailError, setServerEmailError] = useState<string>("");
+  const [query, setQuery] = useState<{ [key: string]: string }>({
+    utm_source: "",
+    utm_medium: "",
+    utm_campaign: "",
+    utm_content: "",
+    utm_term: "",
+  });
 
-  const getUTMParams = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-
-    return {
-      utm_source: urlParams.get("utm_source") || "google",
-      utm_medium: urlParams.get("utm_medium") || "referral",
-      utm_campaign: urlParams.get("utm_campaign") || "",
-      utm_content: urlParams.get("utm_content") || "",
-      utm_term: urlParams.get("utm_term") || "",
-    };
-  };
-
-useEffect(() => {
-  const handleURLChange = () => {
-    const params = getUTMParams();
-    setQuery(params);
-    localStorage.setItem("query", JSON.stringify(params));
-  };
-  
-  handleURLChange();
-
-  window.addEventListener("load", handleURLChange);
-  window.addEventListener("hashchange", handleURLChange);
-  window.addEventListener("popstate", handleURLChange);
-
-  return () => {
-    window.removeEventListener("load", handleURLChange);
-    window.removeEventListener("hashchange", handleURLChange);
-    window.removeEventListener("popstate", handleURLChange);
-  };
-}, []);
-
-const [query, setQuery] = useState(() => {
-  const storedQuery = localStorage.getItem("query");
-  console.log(storedQuery, "storedQuery");
-  return storedQuery ? JSON.parse(storedQuery) : getUTMParams();
-});
+  useEffect(() => {
+    const storedQuery = sessionStorage.getItem("query");
+    if (storedQuery) {
+      setQuery(JSON.parse(storedQuery));
+    }
+  }, []);
 
   const {
     register,
@@ -77,6 +50,7 @@ const [query, setQuery] = useState(() => {
     formState: { errors, isValid, isSubmitting },
     control,
     reset,
+    setError,
   } = useForm<IFormInputs>({
     mode: "onChange",
     resolver: yupResolver(schema),
@@ -86,35 +60,16 @@ const [query, setQuery] = useState(() => {
     },
   });
 
-  const handleServerErrors = (errors: { [key: string]: string }) => {
-    const { name, email, phone } = errors;
-
-    if (name) {
-      setServerNameError(name);
-      toast.error(name);
-    } else {
-      setServerNameError("");
-    }
-
-    if (email) {
-      setServerEmailError(email);
-      toast.error(email);
-    } else {
-      setServerEmailError("");
-    }
-
-    if (phone) {
-      setServerPhoneError(phone);
-      toast.error(phone);
-    } else {
-      setServerPhoneError("");
-    }
-  };
-
-  const clearServerErrors = () => {
-    setServerNameError("");
-    setServerEmailError("");
-    setServerPhoneError("");
+  const handleServerErrors = (error: { [key: string]: string }) => {
+    Object.entries(error).forEach(([key, message]) => {
+      if (["name", "email", "phoneNumber"].includes(key)) {
+        setError(key as "name" | "email" | "phoneNumber", {
+          type: "server",
+          message,
+        });
+        toast.error(message);
+      }
+    });
   };
 
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
@@ -127,13 +82,21 @@ const [query, setQuery] = useState(() => {
     const formData = {
       ...data,
       countryCode,
-      query,
+      query: Object.keys(query).reduce(
+        (acc: { [key: string]: string }, key) => {
+          if (query[key]) {
+            acc[key] = query[key];
+          }
+          return acc;
+        },
+        {}
+      ),
       ipAddress,
       geoInfo,
     };
 
     try {
-      const { response } = await addLead(formData, (success: boolean) => {
+      await addLead(formData, (success: boolean) => {
         setIsSubmitSuccessful(success);
 
         if (success) {
@@ -141,15 +104,10 @@ const [query, setQuery] = useState(() => {
           reset();
         }
       });
-
-      if (response && response.data) {
-        handleServerErrors(response.data);
-      } else {
-        clearServerErrors();
-      }
     } catch (error) {
+      const serverError = error as { [key: string]: string };
+      handleServerErrors(serverError);
       setIsSubmitSuccessful(false);
-      toast.error("An error occurred. Please try again later.");
     }
   };
 
@@ -223,7 +181,7 @@ const [query, setQuery] = useState(() => {
             })}
           />
           <InputErrorMessage className="font-konnect">
-            {errors.name?.message || serverNameError}
+            {errors.name?.message}
           </InputErrorMessage>
         </FormLabel>
         <FormLabel className="font-konnect">
@@ -234,7 +192,7 @@ const [query, setQuery] = useState(() => {
             {...register("email")}
           />
           <InputErrorMessage className="font-konnect">
-            {errors.email?.message || serverEmailError}
+            {errors.email?.message}
           </InputErrorMessage>
         </FormLabel>
         <FormLabel className="font-konnect">
@@ -260,7 +218,7 @@ const [query, setQuery] = useState(() => {
           />
           {errors.phoneNumber && (
             <InputErrorMessage className="font-konnect">
-              {errors.phoneNumber.message || serverPhoneError}
+              {errors.phoneNumber.message}
             </InputErrorMessage>
           )}
         </FormLabel>
