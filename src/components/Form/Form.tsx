@@ -103,14 +103,11 @@ const Form = () => {
     };
 
     try {
-      await addLead(formData, (success: boolean) => {
-        setIsSubmitSuccessful(success);
+      await addLead(formData);
+      setIsSubmitSuccessful(true);
 
-        if (success) {
-          setIsModalOpen(true);
-          reset();
-        }
-      });
+      setIsModalOpen(true);
+      reset();
     } catch (error) {
       const serverError = error as ErrorResponse;
 
