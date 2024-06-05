@@ -3,7 +3,7 @@ import { Checkbox, FormControlLabel, Radio, RadioGroup } from "@mui/material";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import "react-phone-number-input/style.css";
-import { ESelectedRadio, IFormInputs } from "../../models";
+import { ESelectedRadio, ErrorResponse, IFormInputs } from "../../models";
 import { radioOptions, schema } from "../../constants";
 import {
   FormBtn,
@@ -37,6 +37,7 @@ const Form = () => {
     utm_term: "",
   });
   const [fromSite, setFromSite] = useState<string>("");
+  const [isServerError, setIsServerError] = useState<boolean>(false);
 
   useEffect(() => {
     setFromSite(window.location.hostname);
@@ -111,8 +112,14 @@ const Form = () => {
         }
       });
     } catch (error) {
-      const serverError = error as { [key: string]: string };
-      handleServerErrors(serverError);
+      const serverError = error as ErrorResponse;
+
+      if (serverError.data) {
+        handleServerErrors(serverError.data);
+      } else {
+        setIsServerError(true);
+      }
+
       setIsSubmitSuccessful(false);
     }
   };
@@ -257,6 +264,11 @@ const Form = () => {
           value={isSubmitting ? "Submitting..." : "Submit"}
           disabled={!isValid || isSubmitting}
         />
+        {isServerError && (
+          <InputErrorMessage className="font-konnect">
+            Ooops...Something went wrong
+          </InputErrorMessage>
+        )}
       </FormStyled>
       {isSubmitSuccessful && isModalOpen && (
         <ModalResult
