@@ -8,14 +8,11 @@ axios.defaults.baseURL = BASE_URL;
 
 export const addLead = async (
   formData: IFormData,
-  callback: (success: boolean) => void
 ) => {
   try {
     const response = await axios.post("/form", formData);
-    callback(true);
     return response.data;
   } catch (error) {
-    callback(false);
 
     const axiosError = error as AxiosError<ErrorResponse>;
 
