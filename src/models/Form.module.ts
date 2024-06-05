@@ -29,6 +29,7 @@ export interface IFormData {
   };
   ipAddress: string;
   geoInfo: null | object;
+  fromSite: string;
 }
 
 export interface ErrorResponse {

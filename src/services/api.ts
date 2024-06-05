@@ -16,7 +16,6 @@ export const addLead = async (
   callback: (success: boolean) => void
 ) => {
   try {
-    console.log(formData, "formData");
     const response = await axios.post("/form", formData);
     callback(true);
     return response.data;

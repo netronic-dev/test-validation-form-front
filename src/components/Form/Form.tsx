@@ -36,6 +36,11 @@ const Form = () => {
     utm_content: "",
     utm_term: "",
   });
+  const [fromSite, setFromSite] = useState<string>("");
+
+  useEffect(() => {
+    setFromSite(window.location.hostname);
+  }, []);
 
   useEffect(() => {
     const storedQuery = sessionStorage.getItem("query");
@@ -93,6 +98,7 @@ const Form = () => {
       ),
       ipAddress,
       geoInfo,
+      fromSite,
     };
 
     try {
