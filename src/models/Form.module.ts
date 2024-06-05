@@ -33,7 +33,7 @@ export interface IFormData {
 }
 
 export interface ErrorResponse {
-  name: string;
-  email: string;
-  phone: string;
+  message: string;
+  data?: { [key: string]: string };
+  additionalInfo?: Record<string, unknown>;
 }
