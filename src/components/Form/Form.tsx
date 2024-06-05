@@ -29,36 +29,24 @@ const Form = () => {
   const [geoInfo, setGeoInfo] = useState<null | object>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSubmitSuccessful, setIsSubmitSuccessful] = useState<boolean>(false);
-
-  const getUTMParams = () => {
-    const urlParams = new URLSearchParams();
-
-    return {
-      utm_source: urlParams.get("utm_source") || "google",
-      utm_medium: urlParams.get("utm_medium") || "referral",
-      utm_campaign: urlParams.get("utm_campaign") || "",
-      utm_content: urlParams.get("utm_content") || "",
-      utm_term: urlParams.get("utm_term") || "",
-    };
-  };
-
-  const [query, setQuery] = useState(() => {
-    const storedQuery = localStorage.getItem("query");
-    return storedQuery ? JSON.parse(storedQuery) : getUTMParams();
+  const [query, setQuery] = useState<{ [key: string]: string }>({
+    utm_source: "",
+    utm_medium: "",
+    utm_campaign: "",
+    utm_content: "",
+    utm_term: "",
   });
+  const [fromSite, setFromSite] = useState<string>("");
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const params = getUTMParams();
-      setQuery(params);
-      localStorage.setItem("query", JSON.stringify(params));
-    };
+    setFromSite(window.location.hostname);
+  }, []);
 
-    window.addEventListener("hashchange", handleHashChange);
-
-    return () => {
-      window.removeEventListener("hashchange", handleHashChange);
-    };
+  useEffect(() => {
+    const storedQuery = sessionStorage.getItem("query");
+    if (storedQuery) {
+      setQuery(JSON.parse(storedQuery));
+    }
   }, []);
 
   const {
@@ -67,6 +55,7 @@ const Form = () => {
     formState: { errors, isValid, isSubmitting },
     control,
     reset,
+    setError,
   } = useForm<IFormInputs>({
     mode: "onChange",
     resolver: yupResolver(schema),
@@ -75,6 +64,18 @@ const Form = () => {
       nameOfForm: ESelectedRadio.GET_CATALOG,
     },
   });
+
+  const handleServerErrors = (error: { [key: string]: string }) => {
+    Object.entries(error).forEach(([key, message]) => {
+      if (["name", "email", "phoneNumber"].includes(key)) {
+        setError(key as "name" | "email" | "phoneNumber", {
+          type: "server",
+          message,
+        });
+        toast.error(message);
+      }
+    });
+  };
 
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
     const countryCode = getCountryCode(data.phoneNumber);
@@ -86,9 +87,18 @@ const Form = () => {
     const formData = {
       ...data,
       countryCode,
-      query,
+      query: Object.keys(query).reduce(
+        (acc: { [key: string]: string }, key) => {
+          if (query[key]) {
+            acc[key] = query[key];
+          }
+          return acc;
+        },
+        {}
+      ),
       ipAddress,
       geoInfo,
+      fromSite,
     };
 
     try {
@@ -101,8 +111,9 @@ const Form = () => {
         }
       });
     } catch (error) {
+      const serverError = error as { [key: string]: string };
+      handleServerErrors(serverError);
       setIsSubmitSuccessful(false);
-      toast.error("An error occurred. Please try again later.");
     }
   };
 
