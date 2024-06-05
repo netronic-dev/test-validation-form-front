@@ -1,1 +1,0 @@
-import{j as e,L as s}from"./index-t9UxSZCP.js";const a=()=>e.jsxs("div",{className:"flex flex-col",children:[e.jsx(s,{to:"/",className:"text-[red]",children:"Form page"}),e.jsx("h1",{className:"text-[30px]",children:" TestPage"})]});export{a as default};
