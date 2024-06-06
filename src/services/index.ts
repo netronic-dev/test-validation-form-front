@@ -1,1 +1,1 @@
-export { addLead } from "./api";
+export { addLead, getServerError } from "./api";

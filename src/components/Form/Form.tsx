@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { getCountryCode } from "../../utils";
 import { ModalResult } from "../ModalResult";
 import { isValidPhoneNumber } from "react-phone-number-input";
-import { addLead } from "../../services";
+import { addLead, getServerError } from "../../services";
 
 const Form = () => {
   const [ipAddress, setIpAddress] = useState<string>("");
@@ -77,6 +77,18 @@ const Form = () => {
       }
     });
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await getServerError();
+      } catch (error) {
+        setIsServerError(true);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
     const countryCode = getCountryCode(data.phoneNumber);
