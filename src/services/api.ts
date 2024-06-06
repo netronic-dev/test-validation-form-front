@@ -6,14 +6,11 @@ const BASE_URL = "http://localhost:5000";
 
 axios.defaults.baseURL = BASE_URL;
 
-export const addLead = async (
-  formData: IFormData,
-) => {
+export const addLead = async (formData: IFormData) => {
   try {
     const response = await axios.post("/form", formData);
     return response.data;
   } catch (error) {
-
     const axiosError = error as AxiosError<ErrorResponse>;
 
     if (axiosError.response) {
@@ -21,5 +18,15 @@ export const addLead = async (
     } else {
       throw new Error("An unknown error occurred");
     }
+  }
+};
+
+export const getServerError = async () => {
+  try {
+    const response = await axios.get("/form/error");
+    return response;
+  } catch (error) {
+    console.log(error, "error");
+    throw error;
   }
 };
