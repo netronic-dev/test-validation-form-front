@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import PhoneInput from "react-phone-number-input";
-// import { PhoneInput } from "react-international-phone";
 
 interface IProps {
   $error?: "true" | "false";
