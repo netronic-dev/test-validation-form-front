@@ -37,10 +37,13 @@ const Form = () => {
     utm_term: "",
   });
   const [fromSite, setFromSite] = useState<string>("");
+  const [fromPage, setFromPage] = useState<string>("");
   const [isServerError, setIsServerError] = useState<boolean>(false);
+  const [cookiesAdded] = useState<boolean>(true);
 
   useEffect(() => {
     setFromSite(window.location.hostname);
+    setFromPage(window.location.href);
   }, []);
 
   useEffect(() => {
@@ -49,6 +52,17 @@ const Form = () => {
       setQuery(JSON.parse(storedQuery));
     }
   }, []);
+
+  // const setCookie = (name, value, days) => {
+  //   let expires = "";
+  //   if (days) {
+  //     const date = new Date();
+  //     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+  //     expires = "; expires=" + date.toUTCString();
+  //   }
+  //   document.cookie = name + "=" + (value || "") + expires + "; path=/";
+  //   setCookiesAdded(true);
+  // };
 
   const {
     register,
@@ -112,6 +126,8 @@ const Form = () => {
       ipAddress,
       geoInfo,
       fromSite,
+      fromPage,
+      cookiesAdded
     };
 
     try {

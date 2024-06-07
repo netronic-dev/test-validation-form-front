@@ -30,6 +30,8 @@ export interface IFormData {
   ipAddress: string;
   geoInfo: null | object;
   fromSite: string;
+  fromPage: string;
+  cookiesAdded: boolean;
 }
 
 export interface ErrorResponse {
